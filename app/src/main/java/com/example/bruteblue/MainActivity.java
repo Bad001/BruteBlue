@@ -52,7 +52,12 @@ public class MainActivity extends AppCompatActivity {
 
     TextWatcher inputTextWatcher = new TextWatcher() {
         public void afterTextChanged(Editable s) {
-            pin.setText(s.toString());
+            if(s.toString().isEmpty()) {
+                pin.setText(bruteforcer.formatPin(0));
+            }
+            else {
+                pin.setText(bruteforcer.formatPin(Integer.valueOf(s.toString())));
+            }
         }
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
