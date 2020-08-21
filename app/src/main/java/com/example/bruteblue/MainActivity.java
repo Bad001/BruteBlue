@@ -4,20 +4,28 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +34,13 @@ public class MainActivity extends AppCompatActivity {
     private TextView pin;
     private EditText editRange;
     private Bruteforcer bruteforcer;
+    private ListView deviceList;
+    ArrayList list = new ArrayList();
+    private BluetoothAdapter BA;
+    private Set<BluetoothDevice> pairedDevices;
+
+    public MainActivity() {
+    }
 
     @Override
     protected void onStart() {
@@ -60,14 +75,21 @@ public class MainActivity extends AppCompatActivity {
         bruteforcer = new Bruteforcer(this);
         scanBtn = findViewById(R.id.ScanBtn);
         startBruteforceBtn = findViewById(R.id.BruteforceBtn);
+        BA = BluetoothAdapter.getDefaultAdapter();
         pin = findViewById(R.id.Pin);
         editRange = findViewById(R.id.inputRange);
+        deviceList = findViewById(R.id.listView);
         editRange.setGravity(Gravity.CENTER_HORIZONTAL);
         editRange.addTextChangedListener(inputTextWatcher);
         scanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if(BA.isEnabled()) {
+                    list();
+                }
+                else {
+                    BA.enable();
+                }
             }
         });
         startBruteforceBtn.setOnClickListener(new View.OnClickListener() {
@@ -97,4 +119,28 @@ public class MainActivity extends AppCompatActivity {
         public void onTextChanged(CharSequence s, int start, int before, int count) {
         }
     };
+
+    public void list() {
+        list.clear();
+        pairedDevices = BA.getBondedDevices();
+        for(BluetoothDevice bt : pairedDevices) list.add(bt.getName());
+        Toast.makeText(getApplicationContext(), "Scanning",Toast.LENGTH_SHORT).show();
+
+        final ArrayAdapter adapter = new  ArrayAdapter(this,android.R.layout.simple_list_item_single_choice, list);
+
+        deviceList.setAdapter(adapter);
+
+        deviceList.setOnItemClickListener(new AdapterView.OnItemClickListener () {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                String selected = (String) list.get(position);
+                for (Iterator<BluetoothDevice> it = pairedDevices.iterator(); it.hasNext(); ) {
+                    BluetoothDevice bt = it.next();
+                    if (bt.getName().equals(selected)){
+                        //connect to device
+                    }
+                }
+            }
+        });
+    }
 }

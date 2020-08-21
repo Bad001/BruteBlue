@@ -12,7 +12,8 @@ public class Bruteforcer {
     // Attributes
     private int result;
     private Context context;
-    IntentFilter filter;
+    private IntentFilter filter;
+    private int tryPin;
 
     public Bruteforcer(Context context) {
         this.context = context;
@@ -25,7 +26,8 @@ public class Bruteforcer {
         TextView pin = (TextView) ((MainActivity)context).findViewById(R.id.Pin);
         while(range <= 9999 && !correct) {
             // Try this pin
-            if(isConnected(range)) {
+            this.tryPin = range;
+            if(isConnected()) {
                 this.result = range;
                 pin.setText("Pin found: "+formatPin(range));
                 correct = true;
@@ -62,7 +64,7 @@ public class Bruteforcer {
         return pinFormatted;
     }
 
-    public Boolean isConnected(int range) {
+    public Boolean isConnected() {
         Boolean flag = false;
         //pairDevice();
         return flag;
@@ -84,7 +86,7 @@ public class Bruteforcer {
             if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
                 try {
                     BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    int pin=intent.getIntExtra("android.bluetooth.device.extra.PAIRING_KEY", 1234);
+                    int pin=intent.getIntExtra("android.bluetooth.device.extra.PAIRING_KEY", Integer.valueOf(formatPin(tryPin)));
                     //The pin in case you need to accept for an specific pin
                     byte[] pinBytes;
                     pinBytes = (""+pin).getBytes("UTF-8");
