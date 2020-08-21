@@ -89,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(BA.isEnabled()) {
+                    list.clear();
+                    mArrayAdapter.clear();
                     BA.startDiscovery();
                     registerReceiver(mReceiver, filter);
                 }
