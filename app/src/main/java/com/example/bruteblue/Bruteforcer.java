@@ -1,6 +1,10 @@
 package com.example.bruteblue;
 
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.widget.TextView;
 
 public class Bruteforcer {
@@ -8,20 +12,23 @@ public class Bruteforcer {
     // Attributes
     private int result;
     private Context context;
+    IntentFilter filter;
 
     public Bruteforcer(Context context) {
         this.context = context;
+        filter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        this.context.registerReceiver(mPairingRequestReceiver, filter);
     }
 
     public void start(int range) {
-        boolean flag = false;
+        boolean correct = false;
         TextView pin = (TextView) ((MainActivity)context).findViewById(R.id.Pin);
-        while(range <= 9999 && !flag) {
+        while(range <= 9999 && !correct) {
             // Try this pin
-            if(isConnected()) {
+            if(isConnected(range)) {
                 this.result = range;
-                pin.setText(formatPin(range));
-                flag = true;
+                pin.setText("Pin found: "+formatPin(range));
+                correct = true;
             }
             else {
                 pin.setText(formatPin(range));
@@ -55,9 +62,39 @@ public class Bruteforcer {
         return pinFormatted;
     }
 
-    public Boolean isConnected() {
+    public Boolean isConnected(int range) {
         Boolean flag = false;
-        // code here
+        //pairDevice();
         return flag;
     }
+
+    private void pairDevice(BluetoothDevice device) {
+        try {
+            // Start pairing with device
+            device.createBond();
+            // Pairing finished
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private final BroadcastReceiver mPairingRequestReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
+                try {
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    int pin=intent.getIntExtra("android.bluetooth.device.extra.PAIRING_KEY", 1234);
+                    //The pin in case you need to accept for an specific pin
+                    byte[] pinBytes;
+                    pinBytes = (""+pin).getBytes("UTF-8");
+                    device.setPin(pinBytes);
+                    //SetPairing confirmation if needed
+                    device.setPairingConfirmation(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
 }
