@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(BA.isEnabled()) {
+                    BA.startDiscovery();
                     registerReceiver(mReceiver, filter);
                 }
                 else {
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Add the recently discovered device in a list
                 mArrayAdapter.add(bluetoothDevice);
-                list.add(bluetoothDevice.getName() + "\n" + bluetoothDevice.getAddress());
+                list.add(bluetoothDevice.getName());
                 deviceList.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list));
             }
             deviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
