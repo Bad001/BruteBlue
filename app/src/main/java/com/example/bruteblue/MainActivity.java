@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothAdapter BA;
     private BluetoothDevice target;
     private ProgressBar progressBar;
-    private Boolean hasName;
 
     @Override
     protected void onStart() {
@@ -148,19 +147,12 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, final Intent intent) {
             final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            hasName = false;
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Add the recently discovered device in a list
                 mArrayAdapter.add(bluetoothDevice);
-                if(bluetoothDevice.getName().isEmpty()) {
-                    list.add(bluetoothDevice.getAddress());
-                }
-                else {
-                    list.add(bluetoothDevice.getName());
-                    hasName = true;
-                }
+                list.add(bluetoothDevice.getName());
                 deviceList.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list));
             }
             deviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -168,12 +160,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapter, View view, int pos, long id) {
                     // Get the BluetoothDevice corresponding to the clicked item
                     target = mArrayAdapter.get(pos);
-                    if(hasName) {
-                        yourTarget.setText("Target: "+ list.get(pos).toString()+"\nMac: "+mArrayAdapter.get(pos));
-                    }
-                    else {
-                        yourTarget.setText("Target: "+ list.get(pos).toString());
-                    }
+                    yourTarget.setText("Target: "+ list.get(pos).toString()+"\nMac: "+mArrayAdapter.get(pos));
                     startBruteforceBtn.setEnabled(true);
                 }
             });
