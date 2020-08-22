@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -23,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Attributes
     private Button scanBtn, startBruteforceBtn;
-    private TextView pin;
+    private TextView pin, yourTarget;
     private EditText editRange;
     private Bruteforcer bruteforcer;
     private ListView deviceList;
@@ -40,9 +42,8 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<BluetoothDevice> mArrayAdapter = new ArrayList<BluetoothDevice>();
     private BluetoothAdapter BA;
     private BluetoothDevice target;
-
-    public MainActivity() {
-    }
+    private ProgressBar progressBar;
+    private Boolean hasName;
 
     @Override
     protected void onStart() {
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
         setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         bruteforcer = new Bruteforcer(this);
         scanBtn = findViewById(R.id.ScanBtn);
+        yourTarget = findViewById(R.id.selectedTarget);
+        progressBar = findViewById(R.id.progressBar1);
         filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         startBruteforceBtn = findViewById(R.id.BruteforceBtn);
         startBruteforceBtn.setEnabled(false);
@@ -89,10 +92,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(BA.isEnabled()) {
+                    if (progressBar.getVisibility() == View.GONE) {
+                        progressBar.setVisibility(View.VISIBLE);
+                    } else {
+                        progressBar.setVisibility(View.GONE);
+                    }
                     list.clear();
                     mArrayAdapter.clear();
+                    yourTarget.setText("Target:");
                     BA.startDiscovery();
                     registerReceiver(mReceiver, filter);
+                    scanBtn.setEnabled(false);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            // This method will be executed once the timer is over
+                            scanBtn.setEnabled(true);
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    },10000);// set time as per your requirement
                 }
                 else {
                     BA.enable();
@@ -106,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     bruteforcer.start(0,target);
                 }
                 else {
-                    bruteforcer.start(Integer.valueOf(pin.getText().toString()),target);
+                    bruteforcer.start(Integer.valueOf(editRange.getText().toString()),target);
                 }
             }
         });
@@ -130,12 +148,19 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, final Intent intent) {
             final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            hasName = false;
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Add the recently discovered device in a list
                 mArrayAdapter.add(bluetoothDevice);
-                list.add(bluetoothDevice.getName());
+                if(bluetoothDevice.getName().isEmpty()) {
+                    list.add(bluetoothDevice.getAddress());
+                }
+                else {
+                    list.add(bluetoothDevice.getName());
+                    hasName = true;
+                }
                 deviceList.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list));
             }
             deviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -143,6 +168,12 @@ public class MainActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapter, View view, int pos, long id) {
                     // Get the BluetoothDevice corresponding to the clicked item
                     target = mArrayAdapter.get(pos);
+                    if(hasName) {
+                        yourTarget.setText("Target: "+ list.get(pos).toString()+"\nMac: "+mArrayAdapter.get(pos));
+                    }
+                    else {
+                        yourTarget.setText("Target: "+ list.get(pos).toString());
+                    }
                     startBruteforceBtn.setEnabled(true);
                 }
             });
