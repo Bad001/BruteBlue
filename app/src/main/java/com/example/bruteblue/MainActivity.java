@@ -151,8 +151,15 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // Add the recently discovered device in a list
-                mArrayAdapter.add(bluetoothDevice);
-                list.add(bluetoothDevice.getName());
+                if(!mArrayAdapter.contains(bluetoothDevice)) {
+                    if(bluetoothDevice.getName() == null) {
+                        list.add(bluetoothDevice.getAddress());
+                    }
+                    else {
+                        list.add(bluetoothDevice.getName());
+                    }
+                    mArrayAdapter.add(bluetoothDevice);
+                }
                 deviceList.setAdapter(new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list));
             }
             deviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -160,7 +167,12 @@ public class MainActivity extends AppCompatActivity {
                 public void onItemClick(AdapterView<?> adapter, View view, int pos, long id) {
                     // Get the BluetoothDevice corresponding to the clicked item
                     target = mArrayAdapter.get(pos);
-                    yourTarget.setText("Target: "+ list.get(pos).toString()+"\nMac: "+mArrayAdapter.get(pos));
+                    if(list.get(pos) == mArrayAdapter.get(pos).getAddress()) {
+                        yourTarget.setText("Target: "+ mArrayAdapter.get(pos).getAddress());
+                    }
+                    else {
+                        yourTarget.setText("Target: "+ list.get(pos)+"\n"+"Mac: "+mArrayAdapter.get(pos).getAddress());
+                    }
                     startBruteforceBtn.setEnabled(true);
                 }
             });
